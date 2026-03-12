@@ -1,0 +1,21 @@
+export const state = {
+  grid:           [],
+  gridWidth:      9,
+  gridHeight:     15,
+  ball: {
+    x: 0, y: 0,
+    px: 0, py: 0,
+    tx: 0, ty: 0,
+    t: 1,
+    speed: 11,
+    path: [],
+    paintedSteps: 0,
+  },
+  moves:          0,
+  emptyCount:     0,
+  moving:         false,
+  difficulty:     50,
+  seed:           1,
+  particles:      [],
+  cellAnimations: new Map(),
+};

@@ -254,3 +254,22 @@ button:active {
   border-bottom: 4px solid #2850a0;
   box-shadow: 0 4px 10px rgba(40, 80, 160, 0.35);
 }
+
+/* -------- Hint buttons -------- */
+#controls-hint {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+#btn-hint {
+  background: linear-gradient(180deg, #f0b040 0%, #d89020 100%);
+  border-bottom: 4px solid #b07018;
+  box-shadow: 0 4px 10px rgba(160, 100, 20, 0.35);
+}
+
+#btn-solve {
+  background: linear-gradient(180deg, #c878e0 0%, #a050c0 100%);
+  border-bottom: 4px solid #7838a0;
+  box-shadow: 0 4px 10px rgba(120, 60, 160, 0.35);
+}

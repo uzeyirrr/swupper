@@ -5,6 +5,12 @@ import { computePath, paintCell } from "./movement.js";
 import { InputHandler } from "./input.js";
 import { Renderer } from "./renderer.js";
 import { playSlide, playHit, playPaint, playStart, playWin } from "./audio.js";
+import { state } from "./state.js";
+import { spawnParticles, updateParticles } from "./particles.js";
+import {
+  initHints, resetHints, isAutoSolving, cancelAuto,
+  hintNextMove, startAutoSolve, doNextStep,
+} from "./hints.js";
 
 const canvas     = document.getElementById("game-canvas");
 const seedLabel  = document.getElementById("seed-label");
@@ -13,34 +19,36 @@ const diffBadge  = document.getElementById("diff-badge");
 const diffSlider = document.getElementById("difficulty");
 const btnRestart = document.getElementById("btn-restart");
 const btnNewSeed = document.getElementById("btn-new-seed");
+const btnHint    = document.getElementById("btn-hint");
+const btnSolve   = document.getElementById("btn-solve");
 
 const renderer = new Renderer(canvas);
 
-const PARTICLE_COLORS = [
-  "#ffb84d", "#ff9736", "#ff6b6b", "#ffe066", "#ffffff", "#ff4757",
-];
+function tryMove(dir) {
+  if (state.moving) return;
 
-const state = {
-  grid:           [],
-  gridWidth:      9,
-  gridHeight:     15,
-  ball: {
-    x: 0, y: 0,
-    px: 0, py: 0,
-    tx: 0, ty: 0,
-    t: 1,
-    speed: 11,
-    path: [],
-    paintedSteps: 0,
-  },
-  moves:          0,
-  emptyCount:     0,
-  moving:         false,
-  difficulty:     50,
-  seed:           1,
-  particles:      [],
-  cellAnimations: new Map(), // Map<cellKey, startTimeMs>
-};
+  if (!isAutoSolving()) resetHints();
+
+  const { ball, grid, gridWidth, gridHeight } = state;
+  const path = computePath(grid, gridWidth, gridHeight, ball, dir);
+  if (path.length === 0) return;
+
+  playSlide();
+
+  ball.px = ball.x;
+  ball.py = ball.y;
+  ball.tx = path[path.length - 1].x;
+  ball.ty = path[path.length - 1].y;
+  ball.t            = 0;
+  ball.path         = path;
+  ball.paintedSteps = 0;
+
+  state.moving = true;
+  state.moves++;
+  movesLabel.textContent = state.moves;
+}
+
+initHints(tryMove);
 
 function loadLevel(seed, difficulty) {
   const result = generateLevel(seed, difficulty);
@@ -55,6 +63,7 @@ function loadLevel(seed, difficulty) {
   state.moving         = false;
   state.particles      = [];
   state.cellAnimations = new Map();
+  resetHints();
 
   const b = state.ball;
   b.x = b.tx = b.px = result.ballX;
@@ -78,60 +87,25 @@ function doPaintCell(x, y) {
     playPaint();
     state.emptyCount--;
     if (state.emptyCount <= 0) {
+      cancelAuto();
       playWin();
-      setTimeout(() => {
-        newSeed();
-      }, 1200);
+      setTimeout(() => { newSeed(); }, 1200);
     }
   });
-}
-
-function spawnParticles(gx, gy) {
-  const count = 14;
-  for (let i = 0; i < count; i++) {
-    const angle = (Math.PI * 2 / count) * i + (Math.random() - 0.5) * 0.6;
-    const speed = 2 + Math.random() * 3.5;
-    state.particles.push({
-      gx:    gx + 0.5,
-      gy:    gy + 0.5,
-      vgx:   Math.cos(angle) * speed,
-      vgy:   Math.sin(angle) * speed,
-      life:  1,
-      decay: 1.8 + Math.random() * 1.2,
-      size:  0.07 + Math.random() * 0.06,
-      color: PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
-    });
-  }
-}
-
-function tryMove(dir) {
-  if (state.moving) return;
-
-  const { ball, grid, gridWidth, gridHeight } = state;
-  const path = computePath(grid, gridWidth, gridHeight, ball, dir);
-  if (path.length === 0) return;
-
-  playSlide();
-
-  ball.px = ball.x;
-  ball.py = ball.y;
-  ball.tx = path[path.length - 1].x;
-  ball.ty = path[path.length - 1].y;
-  ball.t            = 0;
-  ball.path         = path;
-  ball.paintedSteps = 0;
-
-  state.moving = true;
-  state.moves++;
-  movesLabel.textContent = state.moves;
 }
 
 function resetLevel() { loadLevel(state.seed, state.difficulty); }
 function newSeed()     { loadLevel(Date.now() & 0xffff, state.difficulty); }
 
-new InputHandler(canvas, tryMove);
+new InputHandler(canvas, (dir) => {
+  cancelAuto();
+  tryMove(dir);
+});
+
 btnRestart.addEventListener("click", resetLevel);
 btnNewSeed.addEventListener("click", newSeed);
+btnHint.addEventListener("click", () => hintNextMove(state));
+btnSolve.addEventListener("click", () => startAutoSolve(state));
 diffSlider.addEventListener("input", () => {
   loadLevel(state.seed, parseInt(diffSlider.value, 10));
 });
@@ -174,28 +148,22 @@ function loop(now) {
           ball.paintedSteps++;
         }
         state.moving = false;
-        spawnParticles(ball.x, ball.y);
+        spawnParticles(state.particles, ball.x, ball.y);
         playHit();
+
+        if (isAutoSolving()) doNextStep(state);
       }
     } else {
       state.moving = false;
-      spawnParticles(state.ball.x, state.ball.y);
+      spawnParticles(state.particles, state.ball.x, state.ball.y);
       playHit();
+
+      if (isAutoSolving()) doNextStep(state);
     }
   }
 
-  // Partikülleri güncelle
-  for (let i = state.particles.length - 1; i >= 0; i--) {
-    const p = state.particles[i];
-    p.gx   += p.vgx * dt;
-    p.gy   += p.vgy * dt;
-    p.vgx  *= 0.88;
-    p.vgy  *= 0.88;
-    p.life -= p.decay * dt;
-    if (p.life <= 0) state.particles.splice(i, 1);
-  }
+  updateParticles(state.particles, dt);
 
-  // Süresi dolmuş kare animasyonlarını temizle
   const CELL_ANIM_DUR = 280;
   for (const [key, startTime] of state.cellAnimations) {
     if (now - startTime > CELL_ANIM_DUR) state.cellAnimations.delete(key);
