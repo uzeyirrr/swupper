@@ -1,5 +1,6 @@
 import { TILE_WALL, TILE_EMPTY } from "./constants.js";
 import { createRng } from "./rng.js";
+import { solve } from "./solver.js";
 
 const MAZE_DIRS = [
   { dx:  0, dy: -1 },
@@ -107,10 +108,12 @@ function enforceSlideReachability(grid, gridWidth, gridHeight, startX, startY) {
   return emptyCount;
 }
 
-export function generateLevel(seed, difficulty) {
+const MAX_SOLVABLE_TRIES = 80;
+
+function generateLevelWithSeed(trySeed, difficulty) {
   const { gridWidth, gridHeight, loopChance, wallRemove, deadEndFill } =
     buildConfig(difficulty);
-  const rng = createRng(seed);
+  const rng = createRng(trySeed);
 
   const grid = [];
   for (let y = 0; y < gridHeight; y++) {
@@ -226,4 +229,19 @@ export function generateLevel(seed, difficulty) {
   const emptyCount = enforceSlideReachability(grid, gridWidth, gridHeight, ballX, ballY);
 
   return { grid, gridWidth, gridHeight, ballX, ballY, emptyCount };
+}
+
+export function generateLevel(seed, difficulty) {
+  let lastResult = null;
+  for (let i = 0; i < MAX_SOLVABLE_TRIES; i++) {
+    const trySeed = seed + i;
+    const result = generateLevelWithSeed(trySeed, difficulty);
+    lastResult = result;
+    const gridCopy = result.grid.map(row => [...row]);
+    const solution = solve(gridCopy, result.ballX, result.ballY, result.gridWidth, result.gridHeight);
+    if (solution.length > 0) {
+      return { ...result, seedUsed: trySeed };
+    }
+  }
+  return { ...lastResult, seedUsed: seed + MAX_SOLVABLE_TRIES - 1 };
 }

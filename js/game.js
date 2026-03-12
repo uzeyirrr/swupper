@@ -15,7 +15,7 @@ import {
   getLevelConfig, getMaxUnlocked, getCompleted, getStats,
   completeLevel, isLevelCompleted, getBestMoves,
   loadSettings, saveSettings, jumpToLevel,
-  getBestStreak, getNextLevel,
+  getBestStreak, getNextLevel, saveLevelSeed,
   getDailyConfig, isDailyCompleted, completeDaily,
 } from "./levels.js";
 
@@ -198,7 +198,7 @@ function loadLevel(seed, difficulty) {
   state.gridWidth      = result.gridWidth;
   state.gridHeight     = result.gridHeight;
   state.emptyCount     = result.emptyCount;
-  state.seed           = seed;
+  state.seed           = result.seedUsed ?? seed;
   state.difficulty     = difficulty;
   state.moves          = 0;
   state.moving         = false;
@@ -219,6 +219,7 @@ function loadLevel(seed, difficulty) {
 
   doPaintCell(result.ballX, result.ballY);
   sfxStart();
+  return result;
 }
 
 function startLevel(num) {
@@ -227,7 +228,8 @@ function startLevel(num) {
   const cfg = getLevelConfig(num);
   showScreen("screen-game");
   requestAnimationFrame(() => {
-    loadLevel(cfg.seed, cfg.difficulty);
+    const result = loadLevel(cfg.seed, cfg.difficulty);
+    if (result.seedUsed != null) saveLevelSeed(num, result.seedUsed);
     renderer.resize(state.gridWidth, state.gridHeight);
   });
 }

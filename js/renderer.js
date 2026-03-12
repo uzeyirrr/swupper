@@ -226,7 +226,27 @@ export class Renderer {
     const cy = offsetY + (by + 0.5) * tileSize;
     const r  = tileSize * 0.28;
 
+    let sx = 1, sy = 1;
+    if (moving) {
+      const dx = ball.tx - ball.px;
+      const dy = ball.ty - ball.py;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = dx / len;
+      const ny = dy / len;
+      const bounce = Math.sin(linearT * Math.PI);
+      const stretch = 0.22 * bounce;
+      const squash = 0.18 * bounce;
+      sx = 1 + (nx * nx * stretch) - (ny * ny * squash);
+      sy = 1 + (ny * ny * stretch) - (nx * nx * squash);
+    }
+
     ctx.save();
+
+    if (sx !== 1 || sy !== 1) {
+      ctx.translate(cx, cy);
+      ctx.scale(sx, sy);
+      ctx.translate(-cx, -cy);
+    }
 
     // Yere golge
     ctx.fillStyle = "rgba(10,30,60,0.22)";

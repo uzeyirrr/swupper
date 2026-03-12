@@ -2,18 +2,29 @@ const STORAGE_KEY = "swupper_progress";
 const SETTINGS_KEY = "swupper_settings";
 
 export function getLevelConfig(levelNum) {
+  const data = loadProgress();
+  const levelSeeds = data.levelSeeds || {};
   return {
-    seed: levelNum,
+    seed: levelSeeds[levelNum] ?? levelNum,
     difficulty: Math.floor((levelNum - 1) / 10),
   };
+}
+
+export function saveLevelSeed(levelNum, seed) {
+  const data = loadProgress();
+  if (!data.levelSeeds) data.levelSeeds = {};
+  data.levelSeeds[levelNum] = seed;
+  saveProgress(data);
 }
 
 function loadProgress() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    const data = raw ? JSON.parse(raw) : { maxUnlocked: 1, completed: {} };
+    if (!data.levelSeeds) data.levelSeeds = {};
+    return data;
   } catch (_) { /* ignore */ }
-  return { maxUnlocked: 1, completed: {} };
+  return { maxUnlocked: 1, completed: {}, levelSeeds: {} };
 }
 
 function saveProgress(data) {
