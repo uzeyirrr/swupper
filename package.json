@@ -1,0 +1,8 @@
+{
+  "name": "swupper",
+  "version": "1.0.0",
+  "description": "Grid boyama sliding puzzle oyunu",
+  "scripts": {
+    "start": "npx serve . --listen 3000 --no-clipboard"
+  }
+}

@@ -1,0 +1,256 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'DynaPuff', system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(170deg, #f8b84c 0%, #e88828 35%, #c06010 100%);
+  position: relative;
+}
+
+/* Tahta desen efekti */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      92deg,
+      transparent,
+      transparent 30px,
+      rgba(120, 60, 10, 0.06) 30px,
+      rgba(120, 60, 10, 0.06) 32px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 40px,
+      rgba(120, 60, 10, 0.04) 40px,
+      rgba(120, 60, 10, 0.04) 42px
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Isik efektleri */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 15%, rgba(255,230,160,0.30) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 85%, rgba(140,50,0,0.20) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#game-root {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  max-height: 100dvh;
+  padding: env(safe-area-inset-top, 12px) 12px env(safe-area-inset-bottom, 12px);
+  justify-content: space-evenly;
+}
+
+/* -------- HUD (ahsap panel) -------- */
+#hud {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 88%;
+  background: linear-gradient(180deg, #faecd0 0%, #e4c080 100%);
+  border: 3px solid #c8a050;
+  border-radius: 18px;
+  padding: 6px 16px;
+  position: relative;
+  box-shadow:
+    0 3px 0 #a07828,
+    0 6px 14px rgba(80, 40, 0, 0.30),
+    inset 0 1px 0 rgba(255,255,255,0.55);
+}
+
+/* Ahsap dokusu */
+#hud::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 14px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 20px,
+      rgba(139, 90, 30, 0.05) 20px,
+      rgba(139, 90, 30, 0.05) 22px
+    );
+  pointer-events: none;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(160, 120, 40, 0.10);
+  border: 1.5px solid rgba(160, 120, 40, 0.20);
+  border-radius: 10px;
+  padding: 2px 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #4a2c06;
+  position: relative;
+  z-index: 1;
+}
+
+.badge .lbl {
+  color: #9a7030;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* -------- Board frame -------- */
+#canvas-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #5090e0 0%, #3068c0 100%);
+  border: 4px solid #68a8f8;
+  border-bottom-color: #2050a0;
+  border-radius: 22px;
+  padding: 8px;
+  box-shadow:
+    0 5px 0 #1c4080,
+    0 10px 24px rgba(20, 40, 90, 0.45),
+    inset 0 2px 0 rgba(255,255,255,0.18),
+    inset 0 -2px 4px rgba(0,0,0,0.12);
+}
+
+canvas {
+  display: block;
+  border-radius: 14px;
+  touch-action: none;
+}
+
+/* -------- Difficulty -------- */
+#difficulty-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff8e8;
+  text-shadow: 0 1px 3px rgba(80, 30, 0, 0.4);
+}
+
+#diff-badge {
+  background: linear-gradient(180deg, #faecd0 0%, #e0c080 100%);
+  border: 2px solid #c8a050;
+  border-radius: 10px;
+  padding: 2px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4a2c06;
+  min-width: 90px;
+  text-align: center;
+  box-shadow: 0 2px 0 #a07828;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 110px;
+  height: 8px;
+  background: linear-gradient(180deg, #faecd0, #d8b878);
+  border: 2px solid #c0a050;
+  border-radius: 99px;
+  outline: none;
+  cursor: pointer;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.12);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #fff 0%, #ffc040 50%, #e09020 100%);
+  border: 3px solid #c07018;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(160, 80, 0, 0.5);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #fff 0%, #ffc040 50%, #e09020 100%);
+  border: 3px solid #c07018;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(160, 80, 0, 0.5);
+}
+
+/* -------- Buttons -------- */
+#controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+button {
+  border-radius: 14px;
+  border: none;
+  padding: 10px 22px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  color: #fff;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.22);
+  transition: transform 0.06s;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+button::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  border-radius: 14px 14px 50% 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+button:active {
+  transform: scale(0.94) translateY(2px);
+}
+
+#btn-restart {
+  background: linear-gradient(180deg, #58c070 0%, #38a050 100%);
+  border-bottom: 4px solid #288838;
+  box-shadow: 0 4px 10px rgba(40, 120, 50, 0.35);
+}
+
+#btn-new-seed {
+  background: linear-gradient(180deg, #6898e8 0%, #4070c8 100%);
+  border-bottom: 4px solid #2850a0;
+  box-shadow: 0 4px 10px rgba(40, 80, 160, 0.35);
+}
