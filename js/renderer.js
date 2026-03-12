@@ -38,6 +38,8 @@ export class Renderer {
 
     ctx.clearRect(0, 0, W, H);
 
+    if (!grid || grid.length === 0 || W === 0 || H === 0) return;
+
     // Board arka plan: koyu mavi
     const bg = ctx.createLinearGradient(0, 0, 0, H);
     bg.addColorStop(0, "#2860b8");

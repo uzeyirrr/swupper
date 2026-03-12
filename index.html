@@ -16,11 +16,51 @@
     <title>Swupper</title>
   </head>
   <body>
-    <div id="game-root">
+
+    <!-- ============ ANA SAYFA ============ -->
+    <div id="screen-home">
+      <div id="home-logo" role="button" tabindex="0">SWUPPER</div>
+
+      <div id="home-stats">
+        <div class="stat-item">
+          <span class="stat-val" id="stat-completed">0</span>
+          <span class="stat-lbl">Tamamlanan</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-val" id="stat-moves">0</span>
+          <span class="stat-lbl">Toplam Hamle</span>
+        </div>
+      </div>
+
+      <button id="btn-play" class="btn-big btn-orange">Oyna</button>
+
+      <div id="level-grid-wrap">
+        <div id="level-grid"></div>
+      </div>
+
+      <button id="btn-settings" class="btn-small btn-wood">Ayarlar</button>
+    </div>
+
+    <!-- ============ AYARLAR MODAL ============ -->
+    <div id="settings-overlay" class="overlay">
+      <div id="settings-panel" class="modal-panel">
+        <h2>Ayarlar</h2>
+        <label class="toggle-row">
+          <span>Ses</span>
+          <input type="checkbox" id="chk-sound" checked />
+          <span class="toggle-track"><span class="toggle-knob"></span></span>
+        </label>
+        <button id="btn-settings-close" class="btn-small btn-green">Kapat</button>
+      </div>
+    </div>
+
+    <!-- ============ OYUN EKRANI ============ -->
+    <div id="screen-game">
       <div id="hud">
+        <button id="btn-back" class="hud-btn">&#9664;</button>
         <div class="badge">
-          <span class="lbl">Seed</span>
-          <span id="seed-label">1</span>
+          <span class="lbl">Level</span>
+          <span id="level-label">1</span>
         </div>
         <div class="badge">
           <span class="lbl">Hamle</span>
@@ -32,21 +72,45 @@
         <canvas id="game-canvas"></canvas>
       </div>
 
-      <div id="difficulty-row">
-        <span>Kolay</span>
-        <input type="range" id="difficulty" min="0" max="100" step="1" value="50" />
-        <span>Zor</span>
-        <span id="diff-badge">Orta &nbsp;50%</span>
-      </div>
-
       <div id="controls">
-        <button id="btn-restart">Yeniden Baslat</button>
-        <button id="btn-new-seed">Yeni Seed</button>
+        <button id="btn-restart" class="btn-small btn-green">Yeniden Baslat</button>
       </div>
 
-      <div id="controls-hint">
-        <button id="btn-hint">Sonraki Hamle</button>
-        <button id="btn-solve">Otomatik Coz</button>
+      <!-- Win overlay (canvas uzerinde) -->
+      <div id="win-overlay" class="overlay">
+        <div id="win-panel" class="modal-panel">
+          <div id="win-title">Tebrikler!</div>
+          <div id="win-moves"><span id="win-moves-val">0</span> Hamle</div>
+          <button id="btn-next-level" class="btn-big btn-orange">Sonraki Level</button>
+          <button id="btn-win-home" class="btn-small btn-wood">Ana Sayfa</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DEV MENU ============ -->
+    <div id="dev-overlay" class="overlay">
+      <div id="dev-panel" class="modal-panel">
+        <h2>Dev Menu</h2>
+        <label class="dev-row">
+          <span>Seed</span>
+          <input type="number" id="dev-seed" value="1" min="1" />
+        </label>
+        <label class="dev-row">
+          <span>Zorluk %</span>
+          <input type="range" id="dev-difficulty" min="0" max="100" step="1" value="50" />
+          <span id="dev-diff-val">50</span>
+        </label>
+        <label class="dev-row">
+          <span>Levele Atla</span>
+          <input type="number" id="dev-jump" value="1" min="1" />
+          <button id="btn-dev-jump" class="btn-small btn-blue">Git</button>
+        </label>
+        <div id="dev-controls">
+          <button id="btn-dev-play" class="btn-small btn-green">Seed Oyna</button>
+          <button id="btn-dev-hint" class="btn-small btn-orange">Sonraki Hamle</button>
+          <button id="btn-dev-solve" class="btn-small btn-purple">Otomatik Coz</button>
+        </div>
+        <button id="btn-dev-close" class="btn-small btn-wood">Kapat</button>
       </div>
     </div>
 

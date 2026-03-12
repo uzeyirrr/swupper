@@ -1,7 +1,7 @@
 export const state = {
   grid:           [],
-  gridWidth:      9,
-  gridHeight:     15,
+  gridWidth:      0,
+  gridHeight:     0,
   ball: {
     x: 0, y: 0,
     px: 0, py: 0,
@@ -16,6 +16,7 @@ export const state = {
   moving:         false,
   difficulty:     50,
   seed:           1,
+  currentLevel:   1,
   particles:      [],
   cellAnimations: new Map(),
 };
