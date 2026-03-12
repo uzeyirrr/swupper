@@ -59,6 +59,29 @@ export function getStats() {
   return { completed, totalMoves, maxUnlocked: data.maxUnlocked };
 }
 
+export function getBestStreak() {
+  const data = loadProgress();
+  let best = 0;
+  let current = 0;
+  for (let i = 1; i <= data.maxUnlocked; i++) {
+    if (data.completed[i]) {
+      current++;
+      if (current > best) best = current;
+    } else {
+      current = 0;
+    }
+  }
+  return best;
+}
+
+export function getNextLevel() {
+  const data = loadProgress();
+  for (let i = 1; i <= data.maxUnlocked; i++) {
+    if (!data.completed[i]) return i;
+  }
+  return data.maxUnlocked;
+}
+
 export function jumpToLevel(levelNum) {
   const data = loadProgress();
   if (levelNum > data.maxUnlocked) {
@@ -77,4 +100,29 @@ export function loadSettings() {
 
 export function saveSettings(settings) {
   try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (_) { /* ignore */ }
+}
+
+function todayStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}${m}${day}`;
+}
+
+export function getDailyConfig() {
+  const dateStr = todayStr();
+  return { seed: parseInt(dateStr, 10), difficulty: 40, dateStr };
+}
+
+export function isDailyCompleted() {
+  const s = loadSettings();
+  return s.dailyCompleted === todayStr();
+}
+
+export function completeDaily(moves) {
+  const s = loadSettings();
+  s.dailyCompleted = todayStr();
+  s.dailyMoves = moves;
+  saveSettings(s);
 }

@@ -9,18 +9,21 @@ export class Renderer {
     this.ctx    = canvas.getContext("2d");
   }
 
-  resize() {
-    const wrap = this.canvas.parentElement;
-    if (!wrap) return;
+  resize(gridW, gridH) {
+    const screen = this.canvas.closest(".screen");
+    if (!screen) return;
 
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    const screenRect = screen.getBoundingClientRect();
+    const siblings = screen.querySelectorAll("#hud, #controls");
+    let usedH = 0;
+    for (const s of siblings) usedH += s.getBoundingClientRect().height;
 
-    // Mobilde ekranin cogu board'a gitsin; masaustunde sinirla
-    const maxW = Math.min(vw * 0.92, 400);
-    const maxH = vh * 0.62;
+    const gap = 30;
+    const maxW = screenRect.width * 0.92;
+    const maxH = screenRect.height - usedH - gap * 3;
+    if (maxW <= 0 || maxH <= 0) return;
 
-    const aspect = 9 / 16;
+    const aspect = (gridW > 0 && gridH > 0) ? gridW / gridH : 9 / 16;
     let w = maxW;
     let h = w / aspect;
     if (h > maxH) { h = maxH; w = h * aspect; }

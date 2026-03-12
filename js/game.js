@@ -15,6 +15,8 @@ import {
   getLevelConfig, getMaxUnlocked, getCompleted, getStats,
   completeLevel, isLevelCompleted, getBestMoves,
   loadSettings, saveSettings, jumpToLevel,
+  getBestStreak, getNextLevel,
+  getDailyConfig, isDailyCompleted, completeDaily,
 } from "./levels.js";
 
 // DOM
@@ -22,10 +24,16 @@ const screenHome = document.getElementById("screen-home");
 const screenGame = document.getElementById("screen-game");
 
 const homeLogo       = document.getElementById("home-logo");
-const btnPlay        = document.getElementById("btn-play");
+const btnContinue    = document.getElementById("btn-continue");
 const levelGrid      = document.getElementById("level-grid");
 const statCompleted  = document.getElementById("stat-completed");
 const statMoves      = document.getElementById("stat-moves");
+const statStreak     = document.getElementById("stat-streak");
+const btnDaily       = document.getElementById("btn-daily");
+const dailyLabel     = document.getElementById("daily-label");
+const btnPagePrev    = document.getElementById("btn-page-prev");
+const btnPageNext    = document.getElementById("btn-page-next");
+const pageIndicator  = document.getElementById("page-indicator");
 const btnSettings    = document.getElementById("btn-settings");
 const settingsOvl    = document.getElementById("settings-overlay");
 const chkSound       = document.getElementById("chk-sound");
@@ -36,6 +44,7 @@ const levelLabel     = document.getElementById("level-label");
 const movesLabel     = document.getElementById("moves-label");
 const btnBack        = document.getElementById("btn-back");
 const btnRestart     = document.getElementById("btn-restart");
+const btnAutoSolve   = document.getElementById("btn-auto-solve");
 
 const winOverlay     = document.getElementById("win-overlay");
 const winMovesVal    = document.getElementById("win-moves-val");
@@ -80,21 +89,46 @@ function goHome() {
   showScreen("screen-home");
 }
 
+const PAGE_SIZE = 10;
+let currentPage = 0;
+let isPlayingDaily = false;
+
 function refreshHome() {
   const stats = getStats();
   statCompleted.textContent = stats.completed;
   statMoves.textContent     = stats.totalMoves;
+  statStreak.textContent    = getBestStreak();
+
+  const next = getNextLevel();
+  btnContinue.textContent = "Devam Et - Level " + next;
+
+  if (isDailyCompleted()) {
+    btnDaily.textContent = "Tamamlandi!";
+    btnDaily.classList.remove("btn-blue");
+    btnDaily.classList.add("btn-green");
+  } else {
+    btnDaily.textContent = "Bugunku Bulmacayi Coz";
+    btnDaily.classList.remove("btn-green");
+    btnDaily.classList.add("btn-blue");
+  }
+
+  currentPage = Math.floor((next - 1) / PAGE_SIZE);
   renderLevelGrid();
 }
-
-const LEVELS_SHOWN = 50;
 
 function renderLevelGrid() {
   levelGrid.innerHTML = "";
   const maxUnlocked = getMaxUnlocked();
   const completed   = getCompleted();
+  const start       = currentPage * PAGE_SIZE + 1;
+  const end         = start + PAGE_SIZE - 1;
+  const maxPage     = Math.floor((maxUnlocked + PAGE_SIZE - 1) / PAGE_SIZE) - 1;
 
-  for (let i = 1; i <= LEVELS_SHOWN; i++) {
+  pageIndicator.textContent = start + "-" + end;
+  btnPagePrev.disabled = currentPage <= 0;
+  btnPageNext.disabled = currentPage >= maxPage;
+
+  for (let i = start; i <= end; i++) {
     const btn = document.createElement("button");
     btn.className = "lvl-cell";
 
@@ -126,7 +160,9 @@ btnSettings.addEventListener("click", () => showOverlay(settingsOvl));
 btnSettClose.addEventListener("click", () => hideOverlay(settingsOvl));
 chkSound.addEventListener("change", () => {
   soundEnabled = chkSound.checked;
-  saveSettings({ soundEnabled });
+  const s = loadSettings();
+  s.soundEnabled = soundEnabled;
+  saveSettings(s);
 });
 
 // --- Game ---
@@ -186,12 +222,13 @@ function loadLevel(seed, difficulty) {
 }
 
 function startLevel(num) {
+  isPlayingDaily = false;
   state.currentLevel = num;
   const cfg = getLevelConfig(num);
   showScreen("screen-game");
   requestAnimationFrame(() => {
-    renderer.resize();
     loadLevel(cfg.seed, cfg.difficulty);
+    renderer.resize(state.gridWidth, state.gridHeight);
   });
 }
 
@@ -203,7 +240,11 @@ function doPaintCell(x, y) {
     if (state.emptyCount <= 0) {
       cancelAuto();
       sfxWin();
-      completeLevel(state.currentLevel, state.moves);
+      if (isPlayingDaily) {
+        completeDaily(state.moves);
+      } else {
+        completeLevel(state.currentLevel, state.moves);
+      }
       winMovesVal.textContent = state.moves;
       setTimeout(() => { showOverlay(winOverlay); }, 400);
     }
@@ -222,6 +263,7 @@ new InputHandler(canvas, (dir) => {
 
 btnBack.addEventListener("click", goHome);
 btnRestart.addEventListener("click", resetLevel);
+btnAutoSolve.addEventListener("click", () => startAutoSolve(state));
 
 btnNextLevel.addEventListener("click", () => {
   hideOverlay(winOverlay);
@@ -230,15 +272,38 @@ btnNextLevel.addEventListener("click", () => {
 
 btnWinHome.addEventListener("click", goHome);
 
-btnPlay.addEventListener("click", () => {
-  const maxUnlocked = getMaxUnlocked();
-  const completed   = getCompleted();
-  let target = 1;
-  for (let i = 1; i <= maxUnlocked; i++) {
-    if (!completed[i]) { target = i; break; }
-    target = i + 1;
+btnContinue.addEventListener("click", () => {
+  isPlayingDaily = false;
+  startLevel(getNextLevel());
+});
+
+btnDaily.addEventListener("click", () => {
+  if (isDailyCompleted()) return;
+  const cfg = getDailyConfig();
+  isPlayingDaily = true;
+  state.currentLevel = 0;
+  showScreen("screen-game");
+  levelLabel.textContent = "Gunluk";
+  requestAnimationFrame(() => {
+    loadLevel(cfg.seed, cfg.difficulty);
+    renderer.resize(state.gridWidth, state.gridHeight);
+  });
+});
+
+btnPagePrev.addEventListener("click", () => {
+  if (currentPage > 0) {
+    currentPage--;
+    renderLevelGrid();
   }
-  startLevel(Math.min(target, LEVELS_SHOWN));
+});
+
+btnPageNext.addEventListener("click", () => {
+  const maxUnlocked = getMaxUnlocked();
+  const maxPage = Math.floor((maxUnlocked + PAGE_SIZE - 1) / PAGE_SIZE) - 1;
+  if (currentPage < maxPage) {
+    currentPage++;
+    renderLevelGrid();
+  }
 });
 
 // --- Dev Menu (logo 3x tap) ---
@@ -268,8 +333,10 @@ btnDevPlay.addEventListener("click", () => {
   const diff = parseInt(devDifficulty.value, 10);
   state.currentLevel = seed;
   showScreen("screen-game");
-  renderer.resize();
-  loadLevel(seed, diff);
+  requestAnimationFrame(() => {
+    loadLevel(seed, diff);
+    renderer.resize(state.gridWidth, state.gridHeight);
+  });
 });
 
 btnDevJump.addEventListener("click", () => {
@@ -282,7 +349,7 @@ btnDevHint.addEventListener("click", () => hintNextMove(state));
 btnDevSolve.addEventListener("click", () => startAutoSolve(state));
 
 // --- Resize ---
-window.addEventListener("resize", () => renderer.resize());
+window.addEventListener("resize", () => renderer.resize(state.gridWidth, state.gridHeight));
 
 // --- Game Loop ---
 let lastTime = performance.now();

@@ -18,8 +18,14 @@
   <body>
 
     <!-- ============ ANA SAYFA ============ -->
-    <div id="screen-home">
-      <div id="home-logo" role="button" tabindex="0">SWUPPER</div>
+    <div id="screen-home" class="screen">
+
+      <div id="home-header">
+        <div id="home-logo" role="button" tabindex="0">SWUPPER</div>
+        <div id="home-subtitle">Kaydir, Boya, Cozmece!</div>
+      </div>
+
+      <button id="btn-continue" class="btn-big btn-orange">Devam Et - Level 1</button>
 
       <div id="home-stats">
         <div class="stat-item">
@@ -30,15 +36,32 @@
           <span class="stat-val" id="stat-moves">0</span>
           <span class="stat-lbl">Toplam Hamle</span>
         </div>
+        <div class="stat-item">
+          <span class="stat-val" id="stat-streak">0</span>
+          <span class="stat-lbl">En Iyi Seri</span>
+        </div>
       </div>
 
-      <button id="btn-play" class="btn-big btn-orange">Oyna</button>
+      <div id="home-daily">
+        <div id="daily-label">Gunluk Bulmaca</div>
+        <button id="btn-daily" class="btn-small btn-blue">Bugunku Bulmacayi Coz</button>
+      </div>
 
-      <div id="level-grid-wrap">
+      <div id="home-levels">
+        <div id="levels-header">
+          <span id="levels-title">Seviyeler</span>
+          <div id="levels-nav">
+            <button id="btn-page-prev" class="page-btn">&#9664;</button>
+            <span id="page-indicator">1-10</span>
+            <button id="btn-page-next" class="page-btn">&#9654;</button>
+          </div>
+        </div>
         <div id="level-grid"></div>
       </div>
 
-      <button id="btn-settings" class="btn-small btn-wood">Ayarlar</button>
+      <div id="home-footer">
+        <button id="btn-settings" class="btn-small btn-wood">Ayarlar</button>
+      </div>
     </div>
 
     <!-- ============ AYARLAR MODAL ============ -->
@@ -55,7 +78,7 @@
     </div>
 
     <!-- ============ OYUN EKRANI ============ -->
-    <div id="screen-game">
+    <div id="screen-game" class="screen">
       <div id="hud">
         <button id="btn-back" class="hud-btn">&#9664;</button>
         <div class="badge">
@@ -74,6 +97,7 @@
 
       <div id="controls">
         <button id="btn-restart" class="btn-small btn-green">Yeniden Baslat</button>
+        <button id="btn-auto-solve" class="btn-small btn-purple">Otomatik Coz</button>
       </div>
 
       <!-- Win overlay (canvas uzerinde) -->
