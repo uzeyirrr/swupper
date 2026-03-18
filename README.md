@@ -53,3 +53,4 @@ Tarayicida `http://localhost:3000` adresini acin. Sadece statik dosyalar kullani
 ## Gizli Dev Menu
 
 Ana sayfada logoya (SWUPPER) uc kez tiklayin. Seed, zorluk, levele atlama, ipucu ve otomatik coz testi icin panel acilir.
+
