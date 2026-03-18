@@ -32,6 +32,7 @@ Tarayicida `http://localhost:3000` adresini acin. Sadece statik dosyalar kullani
 - localStorage (ilerleme, ayarlar, level seed’leri)
 - Responsive layout
 
+
 ## Proje Yapisi
 
 - `index.html` – Tek sayfa, ekranlar (ana sayfa, oyun, modallar)
